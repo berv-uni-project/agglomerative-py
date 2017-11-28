@@ -5,13 +5,9 @@ from agglomerative import Agglomerative
 
 if __name__ == "__main__":
     data = pd.read_csv('CencusIncome/CencusIncome.data.txt', sep='\s*,\s*', na_values=["?"], engine='python')
-    print(data.columns.tolist())
-    print(data.shape)
     data = data.dropna(how='any')  # deleted any missing value
     del data['education']  # deleted categorial education because it's same with education-num
-    print(data.shape)
     the_data = data.loc[:, 'age':'native-country']
-    print(the_data.columns)
     label = data.loc[:, 'class']
 
     encoder = preprocessing.LabelEncoder()
@@ -20,7 +16,16 @@ if __name__ == "__main__":
                 "native-country"]:
         the_data[col] = encoder.fit_transform(the_data[col])
 
-    model = AgglomerativeClustering(linkage="average", n_clusters=2)
-    model.fit(the_data.head(n=15))
-    print(label[0:15])
-    print(model.labels_)
+    print(the_data.shape)
+    testing_count = 10000
+    model = AgglomerativeClustering(linkage="ward", n_clusters=2)
+    model.fit(the_data.head(n=testing_count))
+    testing = label[0:testing_count]
+    #print(testing)
+    #print(model.labels_)
+    count = 0
+    for idx, label in enumerate(model.labels_):
+        if label == testing[idx]:
+            count += 1
+    print("Correct: ",count)
+    print("Accuracy: ",count*100.0/testing_count)

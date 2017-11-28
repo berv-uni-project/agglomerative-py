@@ -15,10 +15,12 @@ if __name__ == "__main__":
     label = data.loc[:, 'class']
 
     encoder = preprocessing.LabelEncoder()
+    label = encoder.fit_transform(label)
     for col in ["workclass", "marital-status", "occupation", "relationship", "race", "sex",
                 "native-country"]:
         the_data[col] = encoder.fit_transform(the_data[col])
 
     model = AgglomerativeClustering(linkage="average", n_clusters=2)
-    model.fit(the_data)
-    print(model)
+    model.fit(the_data.head(n=15))
+    print(label[0:15])
+    print(model.labels_)

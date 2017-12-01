@@ -61,14 +61,14 @@ class Agglomerative:
 
         Bentuk distance matrix : [[dist_01, ... , dist_0n], [dist_12, ... , dist_1n],...,[dist_{n-k}{n-k+1},...dist_{n_k}{n}],...[dist_{n-1}{n}]
         dimana 0 < k <= n """
-        for i, col in enumerate(self.data):
-            eval_instance = self.data.iloc[i]
+        raw_data = self.data.as_matrix()
+        for index, eval_instance in enumerate(raw_data):
             distance_array = []
-            for j, col2 in islice(enumerate(self.data), i, None):
-                pair_instance = self.data.iloc[j]
+            for pair_instance in raw_data[index+1:]:
                 distance = self.calculate_distance(eval_instance, pair_instance)
                 distance_array.append(distance)
-            self.distance_matrix.append(distance_array)
+            if(distance_array):
+                self.distance_matrix.append(distance_array)
 
     def calculate_distance(self, instance1, instance2):
         """ Hitung jarak antara instance1 dengan instance2
@@ -76,8 +76,8 @@ class Agglomerative:
         Instance1 & instance2 diasumsikan ada di satu dataset yang sama.
         Jarak dihitung dengan metode euclidean : sqrt(sum((atr_instance1 - atr_instance2)^2)) """
         distance = 0
-        for attribute, val in instance1.items():
-            attr_distance = (val -  instance2[attribute])**2
+        for index, val in enumerate(instance1):
+            attr_distance = (val -  instance2[index])**2
             distance += attr_distance
         return math.sqrt(distance) 
         

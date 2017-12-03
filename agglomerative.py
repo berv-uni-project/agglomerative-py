@@ -104,8 +104,8 @@ class Agglomerative:
         for index, val in enumerate(instance1):
             attr_distance = (val -  instance2[index])**2
             distance += attr_distance
-        return round(math.sqrt(distance), 2)
-        # return math.sqrt(distance)
+        # return round(math.sqrt(distance), 2) for debugging purpose
+        return math.sqrt(distance)
 
     def distance_matrix_idxmin(self):
         """ Cari index [i, j] dimana self.distance_matrix[i][j] maksimum.
@@ -163,26 +163,6 @@ class Agglomerative:
                 cell_row_idx -= 1
                 cluster_length -= 1
             cell_row_idx += 1
-        print("meong")
-
-        #self.distance_matrix[coord_to_del[0]][coord_to_del[1]] = 0
-        
-        # cell_row_idx= 0
-        # cluster_length = len(self.distance_matrix)
-        #while cell_row_idx < cluster_length:
-        #    cell_idx = 0
-        #    cell_row_length = len(self.distance_matrix[cell_row_idx]) 
-         #   while cell_idx < cell_row_length :
-          #      if self.distance_matrix[cell_row_idx][cell_idx] == 0 :
-           #         del self.distance_matrix[cell_row_idx][cell_idx]
-            #        cell_idx -= 1
-             #       cell_row_length -= 1
-              #  cell_idx += 1
-            #if not self.distance_matrix[cell_row_idx] :
-             #   del self.distance_matrix[cell_row_idx]
-              #  cell_row_idx -= 1
-               # cluster_length -= 1
-           # cell_row_idx += 1
         
     def transform_matrix_coordinate(self, cell_x, cell_y):
         coordinate = [min(cell_x, cell_y), max(cell_x, cell_y)]

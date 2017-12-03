@@ -56,15 +56,14 @@ class Agglomerative:
         # Calculate distance matrix
         self.distance_matrix = []
         self.init_distance_matrix()
-  
+
         while len(self.cluster) > self.n_clusters :
-            # print ("cluster = ", len(self.cluster))
             # Find index of "minimum" value in distance matrix
             idxmin = self.distance_matrix_idxmin()
             # Cluster two instance based on "minimum" value
             # Kluster disimpan dalam bentuk array. Contoh bentuk cluster: [[1], [[2], [3]], [[4], [[5], [6]], [[7], [8]]], [9]]
             # key digunakan untuk distance matrix, misalnya
-            #                    
+            #
             #                                     [1]  |  [[2],[3]]  |   [4,[[5],[6]],[[7],[8]]]  |   [9]
             # 0  [1]                          |            1.2                      1.4               3.4
             # 1  [[2], [3]]                   |                                     7.6               2.16
@@ -72,11 +71,16 @@ class Agglomerative:
             #    [9]
             self.update_cluster(idxmin[0], idxmin[1])
             # Update distance matrix
-            self.distance_matrix_update(idxmin[0], idxmin[1])
+            # self.distance_matrix_update(idxmin[0], idxmin[1])
+            self.update_distance_average()
+
+
 
         tree_builder = _TREE_BUILDERS[self.linkage]
         print(self.cluster)
-    
+        # for cluster in self.cluster :
+        #     print(self.get_all_cluster_member(cluster))
+
     def init_cluster(self):
         """Inisialisasi kluster.
 
@@ -107,7 +111,7 @@ class Agglomerative:
         for index, val in enumerate(instance1):
             attr_distance = (val -  instance2[index])**2
             distance += attr_distance
-        # return round(math.sqrt(distance), 2) for debugging purpose
+
         return math.sqrt(distance)
 
     def distance_matrix_idxmin(self):
@@ -124,6 +128,42 @@ class Agglomerative:
                     min_idx = [i, j]
         min_idx[1] = min_idx[0] + j + 1
         return min_idx
+
+    def get_all_cluster_member(self, cluster):
+        if len(cluster) == 1:
+            return cluster
+        else:
+            member = []
+            for subcluster in cluster:
+                member = member+self.get_all_cluster_member(subcluster)
+            return member;
+
+    def calculate_distance_average(self, cluster1, cluster2):
+        distance_sum = 0;
+        raw_data = self.data.as_matrix()
+        for member1 in cluster1:
+            data1 = raw_data[member1]
+            for member2 in cluster2:
+                data2 = raw_data[member2]
+                distance_sum  += self.calculate_distance(data1, data2)
+
+        return distance_sum/(len(cluster1)*len(cluster2))
+
+    def update_distance_average(self) :
+        clusters = []
+        #initialize cluster member
+        # print(self.cluster)
+        for cluster in self.cluster:
+            clusters.append(self.get_all_cluster_member(cluster))
+
+        self.distance_matrix = []
+        for i in range(0, len(clusters)):
+            distance_array = []
+            for j in range(i+1, len(clusters)):
+                distance = self.calculate_distance_average(clusters[i], clusters[j])
+                distance_array.append(distance)
+            self.distance_matrix.append(distance_array)
+
 
     def distance_matrix_update(self, instance1, instance2):
         """ Update self.distance_matrix
@@ -144,7 +184,7 @@ class Agglomerative:
                 cell_x_compare = coordinate_compare[0]
                 cell_y_compare = coordinate_compare[1]
                 # Perhitungan Single Linkage-nya ada di sini
-                val_update = min(self.distance_matrix[cell_x][cell_y], self.distance_matrix[cell_x_compare][cell_y_compare])
+                val_update = max(self.distance_matrix[cell_x][cell_y], self.distance_matrix[cell_x_compare][cell_y_compare])
                 self.distance_matrix[cell_x][cell_y] = val_update
                 self.distance_matrix[cell_x_compare][cell_y_compare] = 0
                 coordinate_to_delete.append(coordinate_compare)
@@ -156,7 +196,6 @@ class Agglomerative:
             for j, next_vals in enumerate(coordinate_to_delete[index+1:]) :
                 if next_vals[0] == val[0]:
                     coordinate_to_delete[index+1+j][1] -= 1
-        print("meong")
         # Delete all empty cluster
         cluster_length  = len(self.distance_matrix)
         cell_row_idx= 0
@@ -166,16 +205,17 @@ class Agglomerative:
                 cell_row_idx -= 1
                 cluster_length -= 1
             cell_row_idx += 1
-        
+
     def transform_matrix_coordinate(self, cell_x, cell_y):
         coordinate = [min(cell_x, cell_y), max(cell_x, cell_y)]
         coordinate[1] = coordinate[1] - (coordinate[0] + 1)
+        # print(coordinate)
         return coordinate
 
     def update_cluster(self, index_instance1, index_instance2):
         self.cluster[index_instance1] = [self.cluster[index_instance1], self.cluster[index_instance2]]
         del self.cluster[index_instance2]
-        
+
     def find_value_in_cluster(self, subcluster, value):
         if len(subcluster) == 1:
             if subcluster[0] == value:
@@ -187,8 +227,8 @@ class Agglomerative:
                 if self.find_value_in_cluster(cluster_val, value):
                     return True
             return False
-        
-if __name__ ==  "__main__" : 
+
+if __name__ ==  "__main__" :
     #import pandas as pd
     test_data = {'A' : [1, 2, -2, -3, 4, 5, 6, 7], 'B' : [1, 0, 1, 1, 4, 3, 6, 6]}
     test_dataframe = pd.DataFrame(test_data)

@@ -72,7 +72,6 @@ class Agglomerative:
             self.distance_matrix_update(idxmin[0], idxmin[1])
 
         tree_builder = _TREE_BUILDERS[self.linkage]
-        print("meong")
         print(self.cluster)
     
     def init_cluster(self):
@@ -105,7 +104,8 @@ class Agglomerative:
         for index, val in enumerate(instance1):
             attr_distance = (val -  instance2[index])**2
             distance += attr_distance
-        return math.sqrt(distance)
+        return round(math.sqrt(distance), 2)
+        # return math.sqrt(distance)
 
     def distance_matrix_idxmin(self):
         """ Cari index [i, j] dimana self.distance_matrix[i][j] maksimum.
@@ -131,6 +131,7 @@ class Agglomerative:
         Untuk saat ini metrik yang baru diimplementasikan adalah nilai minimum (single_linkage).
         """
         self.distance_matrix.append([])
+        coordinate_to_delete = []
         for index, val in enumerate(self.distance_matrix):
             if index != instance1 and index != instance2:
                 coordinate = self.transform_matrix_coordinate(index, instance1)
@@ -139,28 +140,49 @@ class Agglomerative:
                 cell_y = coordinate[1]
                 cell_x_compare = coordinate_compare[0]
                 cell_y_compare = coordinate_compare[1]
+                # Perhitungan Single Linkage-nya ada di sini
                 val_update = min(self.distance_matrix[cell_x][cell_y], self.distance_matrix[cell_x_compare][cell_y_compare])
                 self.distance_matrix[cell_x][cell_y] = val_update
                 self.distance_matrix[cell_x_compare][cell_y_compare] = 0
+                coordinate_to_delete.append(coordinate_compare)
         coord_to_del = self.transform_matrix_coordinate(instance1, instance2)
-        self.distance_matrix[coord_to_del[0]][coord_to_del[1]] = 0
+        coordinate_to_delete.append(coord_to_del)
         # Delete all 0-valued cells
+        for index, val in enumerate(coordinate_to_delete):
+            del self.distance_matrix[val[0]][val[1]]
+            for j, next_vals in enumerate(coordinate_to_delete[index+1:]) :
+                if next_vals[0] == val[0]:
+                    coordinate_to_delete[index+1+j][1] -= 1
+        print("meong")
+        # Delete all empty cluster
+        cluster_length  = len(self.distance_matrix)
         cell_row_idx= 0
-        cluster_length = len(self.distance_matrix)
         while cell_row_idx < cluster_length:
-            cell_idx = 0
-            cell_row_length = len(self.distance_matrix[cell_row_idx]) 
-            while cell_idx < cell_row_length :
-                if self.distance_matrix[cell_row_idx][cell_idx] == 0 :
-                    del self.distance_matrix[cell_row_idx][cell_idx]
-                    cell_idx -= 1
-                    cell_row_length -= 1
-                cell_idx += 1
             if not self.distance_matrix[cell_row_idx] :
                 del self.distance_matrix[cell_row_idx]
                 cell_row_idx -= 1
                 cluster_length -= 1
             cell_row_idx += 1
+        print("meong")
+
+        #self.distance_matrix[coord_to_del[0]][coord_to_del[1]] = 0
+        
+        # cell_row_idx= 0
+        # cluster_length = len(self.distance_matrix)
+        #while cell_row_idx < cluster_length:
+        #    cell_idx = 0
+        #    cell_row_length = len(self.distance_matrix[cell_row_idx]) 
+         #   while cell_idx < cell_row_length :
+          #      if self.distance_matrix[cell_row_idx][cell_idx] == 0 :
+           #         del self.distance_matrix[cell_row_idx][cell_idx]
+            #        cell_idx -= 1
+             #       cell_row_length -= 1
+              #  cell_idx += 1
+            #if not self.distance_matrix[cell_row_idx] :
+             #   del self.distance_matrix[cell_row_idx]
+              #  cell_row_idx -= 1
+               # cluster_length -= 1
+           # cell_row_idx += 1
         
     def transform_matrix_coordinate(self, cell_x, cell_y):
         coordinate = [min(cell_x, cell_y), max(cell_x, cell_y)]

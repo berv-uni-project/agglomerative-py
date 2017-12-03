@@ -17,10 +17,14 @@ if __name__ == "__main__":
         the_data[col] = encoder.fit_transform(the_data[col])
 
     print(the_data.shape)
-    testing_count = 15000
-    model = AgglomerativeClustering(linkage="ward", n_clusters=2)
-    model.fit(the_data.head(n=testing_count))
+    testing_count = 500
+    #model = AgglomerativeClustering(linkage="ward", n_clusters=2)
+    #model.fit(the_data.head(n=testing_count))
     testing = label[0:testing_count]
+
+    model2 = Agglomerative()
+    model2.fit(the_data.head(n=testing_count))
+
     # print(testing)
     # print(model.labels_)
     count = 0

@@ -37,6 +37,7 @@ class Agglomerative:
     tree_ = ''
     labels_ = []
     average_points = []
+    clusters_members = []
 
     def __init__(self, n_clusters=2, linkage='single'):
         self.linkage = linkage
@@ -71,16 +72,16 @@ class Agglomerative:
             # 1  [[2], [3]]                   |                                     7.6               2.16
             # 2  [[4], [[5],[6]], [[7],[8]]]  |                                                       1.1
             #    [9]
-            print(idxmin)
+            # print(idxmin)
             self.update_cluster(idxmin[0], idxmin[1])
             # Update distance matrix
             if (self.linkage.lower() in ["complete", "single"]):
                 self.distance_matrix_update(idxmin[0], idxmin[1])
             elif (self.linkage.lower() == "average"):
-                self.update_distance_average()
-            elif (self.linkage.lower() == "average-group") :
+                self.update_distance_average(idxmin[0], idxmin[1])
+            elif (self.linkage.lower() == "average_group") :
                 self.update_distance_average_group(idxmin[0])
-            print(len(self.cluster))
+            # print(len(self.cluster))
 
 
 
@@ -102,6 +103,7 @@ class Agglomerative:
         raw_data = self.data.as_matrix()
         for index, eval_instance in enumerate(raw_data):
             self.average_points.append(eval_instance)
+            self.clusters_members.insert(index, self.cluster[index])
             distance_array = []
             for pair_instance in raw_data[index + 1:]:
                 distance = self.calculate_distance(eval_instance, pair_instance)
@@ -122,10 +124,11 @@ class Agglomerative:
         return math.sqrt(distance)
 
     def distance_matrix_idxmin(self):
-        """ Cari index [i, j] dimana self.distance_matrix[i][j] maksimum.
+        """ Cari index [i, j] dimana self.distance_matrix[i][j] minimum.
 
         Untuk saat ini masih memakai metrik nilai minimum (single_linkage)
         """
+        print(self.distance_matrix)
         min_val = self.distance_matrix[0][0]
         min_idx = [0, 0]
         for i, val_i in enumerate(self.distance_matrix):
@@ -133,7 +136,9 @@ class Agglomerative:
                 if min_val > val_j:
                     min_val = val_j
                     min_idx = [i, j]
+                    print(str(min_idx)+"ASAsdasdaw")
         min_idx[1] = min_idx[0] + j + 1
+        print(min_idx)
         return min_idx
 
     def get_all_cluster_member(self, cluster):
@@ -167,12 +172,12 @@ class Agglomerative:
 
         return attr
 
-    def update_distance_average_group(self, newClusterIdx):
+    def update_distance_average_group(self, newClusterIdx, delIdx):
         #initialize cluster member
         members = self.get_all_cluster_member(self.cluster[newClusterIdx])
-        self.distance_matrix = []
+        del self.distance_matrix[:]
         self.average_points[newClusterIdx] = self.get_average_point(members)
-        for i in range(0, len(self.cluster)):
+        for i in range(0, len(self.cluster)-1):
             distance_array = []
             for j in range(i+1, len(self.cluster)):
                 distance = self.calculate_distance(self.average_points[i], self.average_points[j])
@@ -181,17 +186,14 @@ class Agglomerative:
 
 
 
-    def update_distance_average(self) :
-        clusters = []
-        #initialize cluster member
-        for cluster in self.cluster:
-            clusters.append(self.get_all_cluster_member(cluster))
-
-        self.distance_matrix = []
-        for i in range(0, len(clusters)):
+    def update_distance_average(self, newClusterIdx,delIdx) :
+        del self.clusters_members[delIdx]
+        self.clusters_members[newClusterIdx] = self.get_all_cluster_member(self.cluster[newClusterIdx])
+        del self.distance_matrix[:]
+        for i in range(0, len(self.cluster)-1):
             distance_array = []
-            for j in range(i+1, len(clusters)):
-                distance = self.calculate_distance_average(clusters[i], clusters[j])
+            for j in range(i+1, len(self.cluster)):
+                distance = self.calculate_distance_average(self.clusters_members[i], self.clusters_members[j])
                 distance_array.append(distance)
             self.distance_matrix.append(distance_array)
 

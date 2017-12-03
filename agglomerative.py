@@ -55,7 +55,7 @@ class Agglomerative:
         self.init_distance_matrix()
   
         while len(self.cluster) > self.n_clusters :
-            print ("cluster = ", len(self.cluster))
+            # print ("cluster = ", len(self.cluster))
             # Find index of "minimum" value in distance matrix
             idxmin = self.distance_matrix_idxmin()
             # Cluster two instance based on "minimum" value
@@ -73,6 +73,7 @@ class Agglomerative:
 
         tree_builder = _TREE_BUILDERS[self.linkage]
         print("meong")
+        print(self.cluster)
     
     def init_cluster(self):
         """Inisialisasi kluster.
@@ -104,7 +105,7 @@ class Agglomerative:
         for index, val in enumerate(instance1):
             attr_distance = (val -  instance2[index])**2
             distance += attr_distance
-        return round(math.sqrt(distance), 2) # easier debugging 
+        return math.sqrt(distance)
 
     def distance_matrix_idxmin(self):
         """ Cari index [i, j] dimana self.distance_matrix[i][j] maksimum.
@@ -145,16 +146,20 @@ class Agglomerative:
         self.distance_matrix[coord_to_del[0]][coord_to_del[1]] = 0
         # Delete all 0-valued cells
         cell_row_idx= 0
-        while cell_row_idx < len(self.distance_matrix):
+        cluster_length = len(self.distance_matrix)
+        while cell_row_idx < cluster_length:
             cell_idx = 0
-            while cell_idx < len(self.distance_matrix[cell_row_idx]) :
+            cell_row_length = len(self.distance_matrix[cell_row_idx]) 
+            while cell_idx < cell_row_length :
                 if self.distance_matrix[cell_row_idx][cell_idx] == 0 :
                     del self.distance_matrix[cell_row_idx][cell_idx]
                     cell_idx -= 1
+                    cell_row_length -= 1
                 cell_idx += 1
             if not self.distance_matrix[cell_row_idx] :
                 del self.distance_matrix[cell_row_idx]
                 cell_row_idx -= 1
+                cluster_length -= 1
             cell_row_idx += 1
         
     def transform_matrix_coordinate(self, cell_x, cell_y):
@@ -180,7 +185,7 @@ class Agglomerative:
         
 if __name__ ==  "__main__" : 
     #import pandas as pd
-    test_data = {'A' : [1, 2, -2, -3, 4, 5, 6, 7], 'B' : [1, 0, 1, 1, 4, 3, 6, 6], 'C' : [1, 10, 30, 15, 20, -1, 0, -1] }
+    test_data = {'A' : [1, 2, -2, -3, 4, 5, 6, 7], 'B' : [1, 0, 1, 1, 4, 3, 6, 6]}
     test_dataframe = pd.DataFrame(test_data)
     test_agglomerative = Agglomerative()
     test_agglomerative.fit(test_dataframe)

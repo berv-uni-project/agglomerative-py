@@ -17,7 +17,7 @@ if __name__ == "__main__":
         the_data[col] = encoder.fit_transform(the_data[col])
 
     print(the_data.shape)
-    testing_count = 500
+    testing_count = 1000
     #model = AgglomerativeClustering(linkage="ward", n_clusters=2)
     #model.fit(the_data.head(n=testing_count))
     testing = label[0:testing_count]
@@ -27,9 +27,9 @@ if __name__ == "__main__":
 
     # print(testing)
     # print(model.labels_)
-    count = 0
-    for idx, label in enumerate(model.labels_):
-        if label == testing[idx]:
-            count += 1
-    print("Correct: ", count, " From: ", testing_count)
-    print("Accuracy: ", count * 100.0 / testing_count)
+    # count = 0
+    # for idx, label in enumerate(model.labels_):
+     #   if label == testing[idx]:
+     #       count += 1
+    #print("Correct: ", count, " From: ", testing_count)
+    #print("Accuracy: ", count * 100.0 / testing_count)

@@ -71,11 +71,16 @@ class Agglomerative:
             # 1  [[2], [3]]                   |                                     7.6               2.16
             # 2  [[4], [[5],[6]], [[7],[8]]]  |                                                       1.1
             #    [9]
+            print(idxmin)
             self.update_cluster(idxmin[0], idxmin[1])
             # Update distance matrix
-            # self.distance_matrix_update(idxmin[0], idxmin[1])
-            # self.update_distance_average()
-            self.update_distance_average_group(idxmin[0])
+            if (self.linkage.lower() in ["complete", "single"]):
+                self.distance_matrix_update(idxmin[0], idxmin[1])
+            elif (self.linkage.lower() == "average"):
+                self.update_distance_average()
+            elif (self.linkage.lower() == "average-group") :
+                self.update_distance_average_group(idxmin[0])
+            print(len(self.cluster))
 
 
 
@@ -175,6 +180,7 @@ class Agglomerative:
             self.distance_matrix.append(distance_array)
 
 
+
     def update_distance_average(self) :
         clusters = []
         #initialize cluster member
@@ -209,8 +215,12 @@ class Agglomerative:
                 cell_x_compare = coordinate_compare[0]
                 cell_y_compare = coordinate_compare[1]
                 # Perhitungan Single Linkage-nya ada di sini
-                val_update = max(self.distance_matrix[cell_x][cell_y],
-                                 self.distance_matrix[cell_x_compare][cell_y_compare])
+                if (self.linkage == "complete"):
+                    val_update = max(self.distance_matrix[cell_x][cell_y],
+                                    self.distance_matrix[cell_x_compare][cell_y_compare])
+                else :
+                    val_update = min(self.distance_matrix[cell_x][cell_y],
+                                    self.distance_matrix[cell_x_compare][cell_y_compare])
                 self.distance_matrix[cell_x][cell_y] = val_update
                 self.distance_matrix[cell_x_compare][cell_y_compare] = 0
                 coordinate_to_delete.append(coordinate_compare)

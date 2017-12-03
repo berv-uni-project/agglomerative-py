@@ -19,12 +19,12 @@ if __name__ == "__main__":
     #    the_data[col] = encoder.fit_transform(the_data[col])
     # print(the_data)
     # print(the_data.shape)
-    testing_count = 1000
+    testing_count = 10000
     #model = AgglomerativeClustering(linkage="ward", n_clusters=2)
     #model.fit(the_data.head(n=testing_count))
     testing = label[0:testing_count]
 
-    model2 = Agglomerative()
+    model2 = Agglomerative(linkage = "average")
     model2.fit(the_data.head(n=testing_count))
 
     print(model2.labels_)

@@ -33,6 +33,9 @@ _TREE_BUILDERS = dict(single=_single_linkage,
 
 
 class Agglomerative:
+    _tree = ''
+    _labels = []
+
     def __init__(self, n_clusters=2, linkage='single'):
         self.linkage = linkage
         self.n_clusters = n_clusters

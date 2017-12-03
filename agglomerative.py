@@ -2,6 +2,7 @@ import math
 import pandas as pd
 from itertools import islice
 
+
 def linkage_tree(X, n_clusters=None, linkage='single', return_distance=False):
     return True
 
@@ -27,14 +28,15 @@ def _average_group_linkage(*args, **kwargs):
 
 
 _TREE_BUILDERS = dict(single=_single_linkage,
-    complete=_complete_linkage,
-    average=_average_linkage,
-    average_group=_average_group_linkage)
+                      complete=_complete_linkage,
+                      average=_average_linkage,
+                      average_group=_average_group_linkage)
 
 
 class Agglomerative:
-    _tree = ''
-    _labels = []
+    tree_ = ''
+    labels_ = []
+    average_points = []
 
     def __init__(self, n_clusters=2, linkage='single'):
         self.linkage = linkage
@@ -72,14 +74,13 @@ class Agglomerative:
             self.update_cluster(idxmin[0], idxmin[1])
             # Update distance matrix
             # self.distance_matrix_update(idxmin[0], idxmin[1])
-            self.update_distance_average()
+            # self.update_distance_average()
+            self.update_distance_average_group(idxmin[0])
 
 
 
         tree_builder = _TREE_BUILDERS[self.linkage]
-        print(self.cluster)
-        # for cluster in self.cluster :
-        #     print(self.get_all_cluster_member(cluster))
+        self.generate_label()
 
     def init_cluster(self):
         """Inisialisasi kluster.
@@ -95,11 +96,12 @@ class Agglomerative:
         dimana 0 < k <= n (Matriks segitiga atas, dengan diagonal dihilangkan)"""
         raw_data = self.data.as_matrix()
         for index, eval_instance in enumerate(raw_data):
+            self.average_points.append(eval_instance)
             distance_array = []
-            for pair_instance in raw_data[index+1:]:
+            for pair_instance in raw_data[index + 1:]:
                 distance = self.calculate_distance(eval_instance, pair_instance)
                 distance_array.append(distance)
-            if(distance_array):
+            if (distance_array):
                 self.distance_matrix.append(distance_array)
 
     def calculate_distance(self, instance1, instance2):
@@ -109,7 +111,7 @@ class Agglomerative:
         Jarak dihitung dengan metode euclidean : sqrt(sum((atr_instance1 - atr_instance2)^2)) """
         distance = 0
         for index, val in enumerate(instance1):
-            attr_distance = (val -  instance2[index])**2
+            attr_distance = (val - instance2[index]) ** 2
             distance += attr_distance
 
         return math.sqrt(distance)
@@ -120,10 +122,10 @@ class Agglomerative:
         Untuk saat ini masih memakai metrik nilai minimum (single_linkage)
         """
         min_val = self.distance_matrix[0][0]
-        min_idx = [0,0]
+        min_idx = [0, 0]
         for i, val_i in enumerate(self.distance_matrix):
             for j, val_j in enumerate(val_i):
-                if(min_val > val_j):
+                if min_val > val_j:
                     min_val = val_j
                     min_idx = [i, j]
         min_idx[1] = min_idx[0] + j + 1
@@ -149,10 +151,33 @@ class Agglomerative:
 
         return distance_sum/(len(cluster1)*len(cluster2))
 
+    def get_average_point(self, cluster):
+        attr = []
+        raw_data = self.data.as_matrix()
+        for i in range(0, len(raw_data[0])):
+            attr.insert(i,0)
+            for member in cluster:
+                attr[i] += raw_data[member][i]
+            attr[i] /= len(cluster)
+
+        return attr
+
+    def update_distance_average_group(self, newClusterIdx):
+        #initialize cluster member
+        members = self.get_all_cluster_member(self.cluster[newClusterIdx])
+        self.distance_matrix = []
+        self.average_points[newClusterIdx] = self.get_average_point(members)
+        for i in range(0, len(self.cluster)):
+            distance_array = []
+            for j in range(i+1, len(self.cluster)):
+                distance = self.calculate_distance(self.average_points[i], self.average_points[j])
+                distance_array.append(distance)
+            self.distance_matrix.append(distance_array)
+
+
     def update_distance_average(self) :
         clusters = []
         #initialize cluster member
-        # print(self.cluster)
         for cluster in self.cluster:
             clusters.append(self.get_all_cluster_member(cluster))
 
@@ -184,7 +209,8 @@ class Agglomerative:
                 cell_x_compare = coordinate_compare[0]
                 cell_y_compare = coordinate_compare[1]
                 # Perhitungan Single Linkage-nya ada di sini
-                val_update = max(self.distance_matrix[cell_x][cell_y], self.distance_matrix[cell_x_compare][cell_y_compare])
+                val_update = max(self.distance_matrix[cell_x][cell_y],
+                                 self.distance_matrix[cell_x_compare][cell_y_compare])
                 self.distance_matrix[cell_x][cell_y] = val_update
                 self.distance_matrix[cell_x_compare][cell_y_compare] = 0
                 coordinate_to_delete.append(coordinate_compare)
@@ -193,14 +219,14 @@ class Agglomerative:
         # Delete all 0-valued cells
         for index, val in enumerate(coordinate_to_delete):
             del self.distance_matrix[val[0]][val[1]]
-            for j, next_vals in enumerate(coordinate_to_delete[index+1:]) :
+            for j, next_vals in enumerate(coordinate_to_delete[index + 1:]):
                 if next_vals[0] == val[0]:
-                    coordinate_to_delete[index+1+j][1] -= 1
+                    coordinate_to_delete[index + 1 + j][1] -= 1
         # Delete all empty cluster
-        cluster_length  = len(self.distance_matrix)
-        cell_row_idx= 0
+        cluster_length = len(self.distance_matrix)
+        cell_row_idx = 0
         while cell_row_idx < cluster_length:
-            if not self.distance_matrix[cell_row_idx] :
+            if not self.distance_matrix[cell_row_idx]:
                 del self.distance_matrix[cell_row_idx]
                 cell_row_idx -= 1
                 cluster_length -= 1
@@ -228,9 +254,23 @@ class Agglomerative:
                     return True
             return False
 
-if __name__ ==  "__main__" :
-    #import pandas as pd
-    test_data = {'A' : [1, 2, -2, -3, 4, 5, 6, 7], 'B' : [1, 0, 1, 1, 4, 3, 6, 6]}
+    def set_label(self, component_tree=None, label=None):
+        if not isinstance(component_tree, list):
+            self.labels_.insert(component_tree, label)
+        else:
+            for component in component_tree:
+                self.set_label(component, label)
+
+    def generate_label(self):
+        nol = self.cluster[:1]
+        satu = self.cluster[1:]
+        self.set_label(nol, 0)
+        self.set_label(satu, 1)
+
+
+if __name__ == "__main__":
+    # import pandas as pd
+    test_data = {'A': [1, 2, -2, -3, 4, 5, 6, 7], 'B': [1, 0, 1, 1, 4, 3, 6, 6]}
     test_dataframe = pd.DataFrame(test_data)
     test_agglomerative = Agglomerative()
     test_agglomerative.fit(test_dataframe)

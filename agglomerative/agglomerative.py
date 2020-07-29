@@ -76,7 +76,7 @@ class Agglomerative:
             self.update_cluster(idxmin[0], idxmin[1])
             # Update distance matrix
             self.distance_matrix_update(idxmin[0], idxmin[1])
-            print(len(self.cluster))
+            # print(len(self.cluster))
 
 
 
